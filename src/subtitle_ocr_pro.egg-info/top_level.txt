@@ -1,0 +1,3 @@
+subtitle_ocr
+subtitle_ocr_cli
+subtitle_ocr_gui
