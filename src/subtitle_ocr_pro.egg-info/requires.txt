@@ -1,0 +1,2 @@
+pgsrip>=0.1.11
+python-dotenv>=1.0.0

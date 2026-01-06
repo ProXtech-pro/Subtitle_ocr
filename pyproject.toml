@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "subtitle-ocr-pro"
+version = "0.1.0"
+description = "PGS (SUP) to SRT converter using pgsrip + Tesseract OCR (GUI-first)"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+  "pgsrip>=0.1.11",
+  "python-dotenv>=1.0.0",
+]
+
+[project.scripts]
+subtitle-ocr = "subtitle_ocr_cli.main:main"
+subtitle-ocr-gui = "subtitle_ocr_gui.app:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

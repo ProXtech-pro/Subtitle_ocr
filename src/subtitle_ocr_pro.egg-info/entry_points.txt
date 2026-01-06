@@ -1,0 +1,3 @@
+[console_scripts]
+subtitle-ocr = subtitle_ocr_cli.main:main
+subtitle-ocr-gui = subtitle_ocr_gui.app:main
