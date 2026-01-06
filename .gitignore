@@ -1,22 +1,26 @@
-# Python
+# === Python ===
 __pycache__/
 *.pyc
+*.pyo
 .venv/
 venv/
 .env
 
-# App runtime folders
+# === App runtime folders ===
 input/
 output/
 logs/
 *.log
 
-# OS / IDE
+# === Tessdata (models) ===
+tessdata_best/*.traineddata
+tessdata_best/**/*.traineddata
+
+# === OS / IDE ===
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
 
-# Local GUI settings
+# === Local GUI settings ===
 settings.json
-
