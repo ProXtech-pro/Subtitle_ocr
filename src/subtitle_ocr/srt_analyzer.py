@@ -1,14 +1,15 @@
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Dict, Any
 import re
+from pathlib import Path
+from typing import Any, Dict
+
 
 def analyze_srt_file(srt_path: Path) -> Dict[str, Any]:
     """Analyze an SRT file and return a quality/content heuristic.
 
-    This is a modularized/cleaned version of the analyzer you already had in `sup_to_srt.py`,
-    kept deterministic and GUI-friendly.
+    This is a modularized/cleaned version of the analyzer you already had
+    in `sup_to_srt.py`, kept deterministic and GUI-friendly.
     """
     analysis: Dict[str, Any] = {
         "size": 0,
@@ -64,9 +65,13 @@ def analyze_srt_file(srt_path: Path) -> Dict[str, Any]:
         text_content = re.sub(time_pattern, "", text_content)
         text_lines = [ln.strip() for ln in text_content.splitlines() if ln.strip()]
         if text_lines:
-            analysis["avg_subtitle_length"] = sum(len(ln) for ln in text_lines) / float(len(text_lines))
+            analysis["avg_subtitle_length"] = sum(len(ln) for ln in text_lines) / float(
+                len(text_lines)
+            )
 
-        analysis["has_content"] = analysis["subtitles"] > 0 and analysis["time_sequences"] > 0
+        analysis["has_content"] = (
+            analysis["subtitles"] > 0 and analysis["time_sequences"] > 0
+        )
 
         # 4) best-effort duration estimation from last timestamp
         #    NOTE: this is heuristic; we keep it conservative.
@@ -74,7 +79,9 @@ def analyze_srt_file(srt_path: Path) -> Dict[str, Any]:
         ts = re.findall(ts_pat, content)
         if ts:
             hh, mm, ss, ms = ts[-1]
-            analysis["duration_seconds"] = int(hh) * 3600 + int(mm) * 60 + int(ss) + (int(ms) / 1000.0)
+            analysis["duration_seconds"] = (
+                int(hh) * 3600 + int(mm) * 60 + int(ss) + (int(ms) / 1000.0)
+            )
 
         # --- status heuristic (ported from your implementation) ---
         if analysis["size"] < 100:
@@ -95,7 +102,11 @@ def analyze_srt_file(srt_path: Path) -> Dict[str, Any]:
         # Inconsistency check between sequences and timings
         if analysis["subtitles"] > 0 and analysis["time_sequences"] > 0:
             if abs(analysis["subtitles"] - analysis["time_sequences"]) > 5:
-                analysis["status"] = f"INCONSISTENT ⚠️ ({analysis['subtitles']} vs {analysis['time_sequences']})"
+                inst = (
+                    f"INCONSISTENT ⚠️ ({analysis['subtitles']} vs "
+                    f"{analysis['time_sequences']})"
+                )
+                analysis["status"] = inst
 
     except Exception as e:
         analysis["status"] = f"ANALYSIS ERROR: {type(e).__name__}"

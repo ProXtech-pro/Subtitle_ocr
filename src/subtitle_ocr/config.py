@@ -4,7 +4,9 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
+
 from dotenv import load_dotenv
+
 
 @dataclass(frozen=True)
 class Defaults:
@@ -17,8 +19,10 @@ class Defaults:
     tessdata_prefix: Optional[Path]
     mkvtoolnix_dir: Optional[Path]
 
+
 def _env_path(name: str, default: str) -> Path:
     return Path(os.getenv(name, default)).expanduser().resolve()
+
 
 def project_root() -> Path:
     """Best-effort project root.
@@ -32,13 +36,16 @@ def project_root() -> Path:
     except Exception:
         return Path.cwd().resolve()
 
+
 def _default_tessdata_dir(root: Path) -> Optional[Path]:
     p = (root / "tessdata_best").resolve()
     return p if p.exists() else None
 
+
 def _default_mkvtoolnix_dir() -> Optional[Path]:
     p = Path(r"C:\Program Files\MKVToolNix")
     return p if p.exists() else None
+
 
 def load_defaults(env_file: str | None = None) -> Defaults:
     """Load configuration defaults from .env / environment.
@@ -70,12 +77,14 @@ def load_defaults(env_file: str | None = None) -> Defaults:
     ).expanduser()
 
     tessdata_raw = os.getenv("TESSDATA_PREFIX", "").strip()
+    tessdata_prefix: Optional[Path]
     if tessdata_raw:
         tessdata_prefix = Path(tessdata_raw).expanduser().resolve()
     else:
         tessdata_prefix = _default_tessdata_dir(root)
 
     mkv_raw = os.getenv("MKVTOOLNIX_DIR", "").strip()
+    mkvtoolnix_dir: Optional[Path]
     if mkv_raw:
         mkvtoolnix_dir = Path(mkv_raw).expanduser().resolve()
     else:
@@ -91,6 +100,7 @@ def load_defaults(env_file: str | None = None) -> Defaults:
         tessdata_prefix=tessdata_prefix,
         mkvtoolnix_dir=mkvtoolnix_dir,
     )
+
 
 def ensure_dirs(input_dir: Path, output_dir: Path, log_dir: Path) -> None:
     input_dir.mkdir(parents=True, exist_ok=True)

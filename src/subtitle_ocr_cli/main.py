@@ -3,15 +3,18 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from subtitle_ocr.config import load_defaults, ensure_dirs
+from subtitle_ocr.config import ensure_dirs, load_defaults
+from subtitle_ocr.pipeline import check_tesseract, process_video
 from subtitle_ocr.scanner import scan_videos
-from subtitle_ocr.pipeline import process_video, check_tesseract
-from subtitle_ocr.types import Paths, Tooling, OCRSettings
+from subtitle_ocr.types import OCRSettings, Paths, Tooling
+
 
 def main() -> int:
     d = load_defaults()
 
-    parser = argparse.ArgumentParser(description="Subtitle OCR (PGS→SRT) - CLI (optional)")
+    parser = argparse.ArgumentParser(
+        description="Subtitle OCR (PGS→SRT) - CLI (optional)"
+    )
     parser.add_argument("--input", default=str(d.input_dir))
     parser.add_argument("--output", default=str(d.output_dir))
     parser.add_argument("--logs", default=str(d.log_dir))
@@ -28,7 +31,11 @@ def main() -> int:
     parser.add_argument("--keep-temp", action="store_true", default=False)
     args = parser.parse_args()
 
-    paths = Paths(Path(args.input).resolve(), Path(args.output).resolve(), Path(args.logs).resolve())
+    paths = Paths(
+        Path(args.input).resolve(),
+        Path(args.output).resolve(),
+        Path(args.logs).resolve(),
+    )
     ensure_dirs(paths.input_dir, paths.output_dir, paths.log_dir)
 
     tooling = Tooling(
@@ -59,10 +66,13 @@ def main() -> int:
 
     succ = 0
     for v in videos:
-        res = process_video(v, paths=paths, tooling=tooling, settings=settings, log=print)
+        res = process_video(
+            v, paths=paths, tooling=tooling, settings=settings, log=print
+        )
         succ += 1 if res.success else 0
     print(f"Done: {succ}/{len(videos)} succeeded.")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

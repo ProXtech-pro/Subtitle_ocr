@@ -1,11 +1,9 @@
 import io
 import json
-import os
 import urllib.request
 import zipfile
 from pathlib import Path
 from typing import Callable, Optional, Tuple
-
 
 LogFn = Optional[Callable[[str], None]]
 

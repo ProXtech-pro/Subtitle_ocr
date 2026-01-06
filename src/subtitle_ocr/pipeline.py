@@ -1,27 +1,40 @@
 from __future__ import annotations
 
 import os
-import sys
-import time
 import shutil
 import subprocess
+import sys
+import time
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Tuple
 
-from .types import OCRSettings, Paths, Tooling, RunResult, LogFn
 from .srt_analyzer import analyze_srt_file
+from .types import LogFn, OCRSettings, Paths, RunResult, Tooling
 
-def check_tesseract(tesseract_exe: Path, tess_lang: str, log: Optional[LogFn] = None) -> Tuple[bool, str]:
+
+def check_tesseract(
+    tesseract_exe: Path, tess_lang: str, log: Optional[LogFn] = None
+) -> Tuple[bool, str]:
     log = log or (lambda _m: None)
     if not tesseract_exe.exists():
         return False, f"Tesseract executable not found: {tesseract_exe}"
     try:
-        r = subprocess.run([str(tesseract_exe), "--list-langs"], capture_output=True, text=True, check=True)
+        r = subprocess.run(
+            [str(tesseract_exe), "--list-langs"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
         if tess_lang not in r.stdout:
-            return True, f"WARNING: Tesseract language '{tess_lang}' not present (check TESSDATA_PREFIX)."
+            msg = (
+                f"WARNING: Tesseract language '{tess_lang}' not present "
+                "(check TESSDATA_PREFIX)."
+            )
+            return True, msg
         return True, "Tesseract OK"
     except Exception as e:
         return False, f"Failed to run Tesseract: {type(e).__name__}: {e}"
+
 
 def _snapshot_srt_files(*folders: Path) -> Dict[Path, float]:
     seen: Dict[Path, float] = {}
@@ -34,6 +47,7 @@ def _snapshot_srt_files(*folders: Path) -> Dict[Path, float]:
                     pass
     return seen
 
+
 def _find_new_srt(before: Dict[Path, float], after: Dict[Path, float]) -> List[Path]:
     new_files: List[Path] = []
     for p, mtime in after.items():
@@ -44,8 +58,10 @@ def _find_new_srt(before: Dict[Path, float], after: Dict[Path, float]) -> List[P
     new_files.sort(key=lambda x: x.stat().st_mtime if x.exists() else 0, reverse=True)
     return new_files
 
+
 def _inject_path(tooling: Tooling) -> None:
-    # Inject tool folders into PATH just for this process (same approach as your scripts)
+    # Inject tool folders into PATH just for this process
+    # (same approach as your scripts)
     path_parts: List[str] = []
     if tooling.mkvtoolnix_dir:
         path_parts.append(str(tooling.mkvtoolnix_dir))
@@ -54,6 +70,7 @@ def _inject_path(tooling: Tooling) -> None:
 
     if tooling.tessdata_prefix:
         os.environ["TESSDATA_PREFIX"] = str(tooling.tessdata_prefix)
+
 
 def process_video(
     video_path: Path,
@@ -75,8 +92,11 @@ def process_video(
     before = _snapshot_srt_files(work_dir, cwd, paths.output_dir)
 
     cmd: List[str] = [
-        sys.executable, "-m", "pgsrip",
-        "--language", settings.pgsrip_lang,
+        sys.executable,
+        "-m",
+        "pgsrip",
+        "--language",
+        settings.pgsrip_lang,
     ]
     if settings.debug_verbose:
         cmd += ["--verbose", "--debug"]
@@ -92,7 +112,8 @@ def process_video(
         cmd += ["--all"]
     cmd += [str(video_path)]
 
-    log(f"Running: {' '.join(cmd)}")
+    cmd_str = ' '.join(cmd)
+    log(f"Running: {cmd_str}")
 
     try:
         proc = subprocess.Popen(
@@ -118,7 +139,9 @@ def process_video(
         after = _snapshot_srt_files(work_dir, cwd, paths.output_dir)
         candidates = _find_new_srt(before, after)
         if not candidates:
-            return RunResult(False, "pgsrip finished but no new/updated .srt detected", {}, None)
+            return RunResult(
+                False, "pgsrip finished but no new/updated .srt detected", {}, None
+            )
 
         stem_prefix = video_path.stem.lower()
         preferred = [p for p in candidates if p.stem.lower().startswith(stem_prefix)]
@@ -127,7 +150,9 @@ def process_video(
         # If pgsrip already wrote into output with our naming, keep it
         if chosen == target_srt.resolve():
             analysis = analyze_srt_file(chosen)
-            return RunResult(True, f"SRT exists ({analysis.get('status')})", analysis, chosen)
+            return RunResult(
+                True, f"SRT exists ({analysis.get('status')})", analysis, chosen
+            )
 
         # Otherwise move/rename to our target
         if target_srt.exists():
@@ -135,7 +160,9 @@ def process_video(
         shutil.move(str(chosen), str(target_srt))
 
         analysis = analyze_srt_file(target_srt)
-        return RunResult(True, f"SRT extracted ({analysis.get('status')})", analysis, target_srt)
+        return RunResult(
+            True, f"SRT extracted ({analysis.get('status')})", analysis, target_srt
+        )
 
     except Exception as e:
         return RunResult(False, f"Unexpected error: {type(e).__name__}: {e}", {}, None)

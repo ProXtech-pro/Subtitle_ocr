@@ -2,6 +2,7 @@ README.md
 pyproject.toml
 src/subtitle_ocr/__init__.py
 src/subtitle_ocr/config.py
+src/subtitle_ocr/models_downloader.py
 src/subtitle_ocr/pipeline.py
 src/subtitle_ocr/scanner.py
 src/subtitle_ocr/settings_store.py
