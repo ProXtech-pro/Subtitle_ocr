@@ -2,6 +2,7 @@ import csv
 import json
 import threading
 import tkinter as tk
+from subtitle_ocr.models_downloader import download_tessdata_from_github_release
 from typing import List, Dict, Any, Optional
 from tkinter import ttk, filedialog, messagebox, scrolledtext
 from pathlib import Path
@@ -19,6 +20,9 @@ TESS_TRAINEDDATA_MAP = {
     "ron": "ron.traineddata",
     "ita": "ita.traineddata",
 }
+GITHUB_OWNER = "ProXtech-pro"
+GITHUB_REPO = "Subtitle_ocr"
+GITHUB_ASSET_NAME = "tessdata_best_min.zip"
 
 
 class App:
@@ -153,17 +157,22 @@ class App:
 
         ctrl = ttk.Frame(main)
         ctrl.grid(row=3, column=0, columnspan=3, sticky="ew")
+
         self.start_btn = ttk.Button(ctrl, text="Start", command=self.start)
         self.start_btn.grid(row=0, column=0, padx=(0, 6))
+
         self.stop_btn = ttk.Button(ctrl, text="Stop", command=self.stop, state="disabled")
         self.stop_btn.grid(row=0, column=1, padx=(0, 6))
+
         ttk.Button(ctrl, text="Check setup", command=self.check_setup).grid(row=0, column=2, padx=(0, 6))
         ttk.Button(ctrl, text="Summary", command=self.show_summary).grid(row=0, column=3, padx=(0, 6))
         ttk.Button(ctrl, text="Export report", command=self.export_report).grid(row=0, column=4, padx=(0, 6))
+        ttk.Button(ctrl, text="Download models", command=self.download_models).grid(row=0, column=5, padx=(0, 6))
 
         self.progress = ttk.Progressbar(ctrl, maximum=100, length=420)
-        self.progress.grid(row=0, column=5, sticky="ew", padx=(10, 0))
-        ctrl.columnconfigure(5, weight=1)
+        self.progress.grid(row=0, column=6, sticky="ew", padx=(10, 0))
+        ctrl.columnconfigure(6, weight=1)
+
 
         log_frame = ttk.LabelFrame(main, text="Log", padding=10)
         log_frame.grid(row=4, column=0, columnspan=3, sticky="nsew", pady=(10, 0))
@@ -308,6 +317,32 @@ class App:
             messagebox.showinfo("Setup OK", "All required tools/data look OK.")
 
         self._save_settings_now()
+    def download_models(self) -> None:
+        """
+        Download tessdata_best traineddata files from GitHub Releases (latest),
+        and place them into project-local ./tessdata_best
+        """
+        dest_dir = Path(self.tessdata_prefix.get()).resolve() if self.tessdata_prefix.get().strip() else (Path.cwd() / "tessdata_best")
+        dest_dir.mkdir(parents=True, exist_ok=True)
+
+        def worker():
+            self._log("Starting model download from GitHub Releases...")
+            ok, msg = download_tessdata_from_github_release(
+                owner=GITHUB_OWNER,
+                repo=GITHUB_REPO,
+                asset_name=GITHUB_ASSET_NAME,
+                dest_dir=dest_dir,
+                log=self._log,
+            )
+            if ok:
+                self._log(msg)
+                messagebox.showinfo("Download models", msg)
+            else:
+                self._log("ERROR: " + msg)
+                messagebox.showerror("Download models failed", msg)
+
+        threading.Thread(target=worker, daemon=True).start()
+
 
     def _record_result(self, video: Path, res: RunResult) -> None:
         self._run_results.append({

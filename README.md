@@ -29,6 +29,19 @@ GUI-first converter for PGS/SUP subtitles embedded in video files, using **pgsri
    ```bash
    subtitle-ocr-gui
    ```
+## Models (tessdata_best)
+
+This project does not ship Tesseract traineddata files in the git repository.
+
+### Option A (manual)
+1. Go to GitHub Releases (Latest)
+2. Download `tessdata_best_min.zip`
+3. Extract into `./tessdata_best/` so you have:
+   - `tessdata_best/eng.traineddata`
+   - `tessdata_best/ron.traineddata`
+
+### Option B (GUI)
+Open the GUI and click **Download models**.
 
 ## GUI features
 - **Check setup** validates Tesseract, tessdata_best, and MKVToolNix.
